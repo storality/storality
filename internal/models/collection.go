@@ -9,7 +9,7 @@ import (
 
 type Collection struct {
 	ID 				int
-	Title 		string
+	Name 		string
 	Plural 		string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -21,22 +21,26 @@ type CollectionModel struct {
 }
 
 func (m *CollectionModel) CreateTable() {
-	stmt := `CREATE TABLE collections (
+	stmt := `CREATE TABLE IF NOT EXISTS collections (
 		id INT AUTO_INCREMENT PRIMARY KEY,
-		title TEXT NOT_NULL,
+		name TEXT NOT_NULL,
 		plural TEXT NOT_NULL,
 		createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);`
-	_, err := m.DB.Exec(stmt)
+	result, err := m.DB.Exec(stmt)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if rowsAffected, _ := result.RowsAffected(); rowsAffected > 0 {
+		m.Insert("post", "posts")
+		m.Insert("page", "pages")
+	}
 }
 
-func (m *CollectionModel) Insert(title string, plural string) (int, error) {
-	stmt := `INSERT INTO collections (title, plural)
+func (m *CollectionModel) Insert(name string, plural string) (int, error) {
+	stmt := `INSERT INTO collections (name, plural)
 	VALUES (?, ?, UTC_TIMESTAMP()))`
-	result, err := m.DB.Exec(stmt, title, plural)
+	result, err := m.DB.Exec(stmt, name, plural)
 	if err != nil {
 		return 0, err
 	}
@@ -48,10 +52,25 @@ func (m *CollectionModel) Insert(title string, plural string) (int, error) {
 }
 
 func (m *CollectionModel) FindById(id int) (*Collection, error) {
-	stmt := `SELECT id, title, plural, createdAt FROM collections WHERE id = ?`
+	stmt := `SELECT id, name, plural, createdAt FROM collections WHERE id = ?`
 	row := m.DB.QueryRow(stmt, id)
 	collection := &Collection{}
-	err := row.Scan(&collection.ID, &collection.Title, &collection.Plural, &collection.CreatedAt)
+	err := row.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+	return collection, nil
+}
+
+func (m *CollectionModel) FindByName(name string) (*Collection, error) {
+	stmt := `SELECT id, name, plural, createdAt FROM collections WHERE name = ?`
+	row := m.DB.QueryRow(stmt, name)
+	collection := &Collection{}
+	err := row.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -63,7 +82,7 @@ func (m *CollectionModel) FindById(id int) (*Collection, error) {
 }
 
 func (m *CollectionModel) FindAll() ([]*Collection, error) {
-	stmt := `SELECT id, title, plural, createdAt FROM collections`
+	stmt := `SELECT id, name, plural, createdAt FROM collections`
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -72,7 +91,7 @@ func (m *CollectionModel) FindAll() ([]*Collection, error) {
 	collections := []*Collection{}
 	for rows.Next() {
 		collection := &Collection{}
-		err = rows.Scan(&collection.ID, &collection.Title, &collection.Plural, &collection.CreatedAt)
+		err = rows.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
 		if err != nil {
 			return nil , err
 		}

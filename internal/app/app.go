@@ -17,24 +17,19 @@ type Core struct {
 
 func Bootstrap(cfg config.Config, router *http.ServeMux) *Core {
 	log.SetFlags(log.Llongfile)
-	db := db.Connect(cfg.Driver, cfg.Connection)
-	app := &Core{
-		DB: db,
-		Router: router,
-		Config: &cfg,
-	}
-	app.verifyInstall()
+	app := &Core{}
+	app.Config = &cfg
+	app.Router = router
+	app.verifyDataDir()
+	app.DB = db.Connect(cfg.Driver, cfg.Connection)
 	return app
 }
 
-
-func (app *Core) verifyInstall() {
+func (app *Core) verifyDataDir() {
 	if _, err := os.Stat("stor_data"); os.IsNotExist(err) {
 		err = os.Mkdir("stor_data", 0755)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-
-
 }

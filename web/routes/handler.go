@@ -11,6 +11,7 @@ import (
 func Handle(app *app.Core) {
 	app.Router.HandleFunc("/", index)
 	collections, err := app.DB.Collections.FindAll()
+	log.Print(collections)
 	if err != nil {
 		log.Fatal(err)
 	}
