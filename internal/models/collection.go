@@ -21,26 +21,46 @@ type CollectionModel struct {
 }
 
 func (m *CollectionModel) CreateTable() {
-	stmt := `CREATE TABLE IF NOT EXISTS collections (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		name TEXT NOT_NULL,
-		plural TEXT NOT_NULL,
-		createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);`
-	result, err := m.DB.Exec(stmt)
-	if err != nil {
-		log.Fatal(err)
+
+	var temp string
+	var err error
+	switch m.Driver {
+		case "mysql":
+			err = m.DB.QueryRow("SHOW TABLES LIKE 'collections'").Scan(&temp)
+		case "postgres":
+			err = m.DB.QueryRow("SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = 'collections'").Scan(&temp)
+		default:
+			err = m.DB.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='collections'").Scan(&temp)
 	}
-	if rowsAffected, _ := result.RowsAffected(); rowsAffected > 0 {
-		m.Insert("post", "posts")
-		m.Insert("page", "pages")
+	if err != nil {
+		if err == sql.ErrNoRows {
+			stmt := `CREATE TABLE collections (
+				id INT AUTO_INCREMENT PRIMARY KEY,
+				name TEXT NOT_NULL,
+				plural TEXT NOT_NULL,
+				createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			);`
+		
+			_, err = m.DB.Exec(stmt)
+			if err != nil {
+				log.Fatal(err)
+			}
+			_, err := m.Insert("post", "posts")
+			if err != nil {
+				log.Fatal(err)
+			}
+			_, err = m.Insert("page", "pages")
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 	}
 }
 
 func (m *CollectionModel) Insert(name string, plural string) (int, error) {
-	stmt := `INSERT INTO collections (name, plural)
-	VALUES (?, ?, UTC_TIMESTAMP()))`
-	result, err := m.DB.Exec(stmt, name, plural)
+	createdAt := time.Now()
+	stmt := "INSERT INTO collections (name, plural) VALUES (?, ?, ?)"
+	result, err := m.DB.Exec(stmt, name, plural, createdAt)
 	if err != nil {
 		return 0, err
 	}
