@@ -15,12 +15,11 @@ import (
 func main() {
 	port := flag.Int("port", 3000, "The port")
 	headless := flag.Bool("headless", false, "Run in headless mode")
-	driver := flag.String("db-driver", "sqlite3", "The database driver")
-	connection := flag.String("db-connection", "stor_data/stor_db.db", "The database connection string")
+	dataDir := flag.String("data-dir", "stor_data", "The directory for the data")
 	flag.Parse()
 
 	router := http.NewServeMux()
-	app := app.Bootstrap(*config.Load(*port, *headless, *driver, *connection, "server"), router)
+	app := app.Bootstrap(*config.Load(*port, *headless, *dataDir, "server"), router)
 
 	_, err := admin.Init(app, *headless)
 	if err != nil {

@@ -3,17 +3,15 @@ package config
 type Config struct {
 	Port int
 	Headless bool
-	Driver string
-	Connection string
+	DataDir string
 	CMD string
 }
 
-func Load(port int, headless bool, driver string, connection string, cmd string) *Config {
+func Load(port int, headless bool, dataDir string, cmd string) *Config {
 	return &Config{
 		Port: port,
 		Headless: headless,
-		Driver: driver,
-		Connection: connection,
+		DataDir: dataDir,
 		CMD: cmd,
 	}
 }

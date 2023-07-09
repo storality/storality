@@ -21,7 +21,7 @@ func Bootstrap(cfg config.Config, router *http.ServeMux) *Core {
 	app.Config = &cfg
 	app.Router = router
 	app.verifyDataDir()
-	app.DB = db.Connect(cfg.Driver, cfg.Connection)
+	app.DB = db.Connect(cfg.DataDir)
 	return app
 }
 

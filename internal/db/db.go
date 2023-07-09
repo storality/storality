@@ -12,28 +12,26 @@ type DB struct {
 	Collections *models.CollectionModel
 }
 
-func Connect(driver string, connection string) *DB {
-	database, err := openDB(driver, connection)
+func Connect(dataDir string) *DB {
+	database, err := openDB(dataDir)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if driver == "sqlite3" {
-		_, err := database.Exec("PRAGMA journal_mode=WAL")
-		if err != nil {
-			log.Fatal(err)
-		}
+	_, err = database.Exec("PRAGMA journal_mode=WAL")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	db := &DB{
-		Collections: &models.CollectionModel{DB: database, Driver: driver},
+		Collections: &models.CollectionModel{DB: database},
 	}
 	db.Collections.CreateTable()
 	return db
 }
 
-func openDB(driver string, connection string) (*sql.DB, error) {
-	db, err := sql.Open(driver, connection)
+func openDB(dataDir string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite3", dataDir + "/stor_db")
 	if err != nil {
 		return nil, err
 	}
