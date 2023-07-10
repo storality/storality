@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -17,27 +18,19 @@ type Collection struct {
 
 type CollectionModel struct {
 	DB *sql.DB
-	Driver string
 }
 
 func (m *CollectionModel) CreateTable() {
 
 	var temp string
 	var err error
-	switch m.Driver {
-		case "mysql":
-			err = m.DB.QueryRow("SHOW TABLES LIKE 'collections'").Scan(&temp)
-		case "postgres":
-			err = m.DB.QueryRow("SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = 'collections'").Scan(&temp)
-		default:
-			err = m.DB.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='collections'").Scan(&temp)
-	}
+	err = m.DB.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='collections'").Scan(&temp)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			stmt := `CREATE TABLE collections (
-				id INT AUTO_INCREMENT PRIMARY KEY,
-				name TEXT NOT_NULL,
-				plural TEXT NOT_NULL,
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				name TEXT NOT NULL,
+				plural TEXT NOT NULL,
 				createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			);`
 		
@@ -59,7 +52,7 @@ func (m *CollectionModel) CreateTable() {
 
 func (m *CollectionModel) Insert(name string, plural string) (int, error) {
 	createdAt := time.Now()
-	stmt := "INSERT INTO collections (name, plural) VALUES (?, ?, ?)"
+	stmt := "INSERT INTO collections (name, plural, createdAt) VALUES (?, ?, ?)"
 	result, err := m.DB.Exec(stmt, name, plural, createdAt)
 	if err != nil {
 		return 0, err
@@ -89,6 +82,22 @@ func (m *CollectionModel) FindById(id int) (*Collection, error) {
 func (m *CollectionModel) FindByName(name string) (*Collection, error) {
 	stmt := `SELECT id, name, plural, createdAt FROM collections WHERE name = ?`
 	row := m.DB.QueryRow(stmt, name)
+	collection := &Collection{}
+	err := row.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+	return collection, nil
+}
+
+func (m *CollectionModel) FindBySlug(slug string) (*Collection, error) {
+	plural := strings.Trim(slug, "/")
+	stmt := `SELECT id, name, plural, createdAt FROM collections WHERE plural = ?`
+	row := m.DB.QueryRow(stmt, plural)
 	collection := &Collection{}
 	err := row.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
 	if err != nil {

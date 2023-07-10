@@ -16,7 +16,9 @@ func Handle(app *app.Core) {
 	}
 	for _, collection := range collections {
 		slug := "/" + collection.Plural
-		app.Router.HandleFunc(slug, collectionListing)
+		app.Router.HandleFunc(slug, func(w http.ResponseWriter, r *http.Request){
+			collectionListing(w, slug, app)
+		})
 		app.Router.HandleFunc(slug + "/", func(w http.ResponseWriter, r *http.Request){
 			http.Redirect(w, r, slug, http.StatusPermanentRedirect)
 		})
@@ -31,6 +33,11 @@ func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "INDEX")
 }
 
-func collectionListing(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Collection Listing")
+func collectionListing(w http.ResponseWriter, slug string, app *app.Core) {
+	collection, err := app.DB.Collections.FindBySlug(slug)
+	if err != nil {
+		fmt.Fprintln(w, "404 - Not Found")
+		return
+	}
+	fmt.Fprintln(w, "Listing for the " + collection.Name + " collection")
 }
