@@ -2,9 +2,9 @@ package db
 
 import (
 	"database/sql"
-	"log"
 
 	_ "github.com/mattn/go-sqlite3"
+	"storality.com/storality/internal/helpers/shout"
 	"storality.com/storality/internal/models"
 )
 
@@ -12,15 +12,15 @@ type DB struct {
 	Collections *models.CollectionModel
 }
 
-func Connect(dataDir string) *DB {
-	database, err := openDB(dataDir)
+func Connect() *DB {
+	database, err := openDB()
 	if err != nil {
-		log.Fatal(err)
+		shout.Error.Fatal(err)
 	}
 
 	_, err = database.Exec("PRAGMA journal_mode=WAL")
 	if err != nil {
-		log.Fatal(err)
+		shout.Error.Fatal(err)
 	}
 
 	db := &DB{
@@ -30,8 +30,8 @@ func Connect(dataDir string) *DB {
 	return db
 }
 
-func openDB(dataDir string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dataDir + "/stor_db")
+func openDB() (*sql.DB, error) {
+	db, err := sql.Open("sqlite3", "stor_data/stor_db")
 	if err != nil {
 		return nil, err
 	}

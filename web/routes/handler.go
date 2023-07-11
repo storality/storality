@@ -2,17 +2,17 @@ package routes
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"storality.com/storality/internal/app"
+	"storality.com/storality/internal/helpers/shout"
 )
 
 func Handle(app *app.Core) {
 	app.Router.HandleFunc("/", index)
 	collections, err := app.DB.Collections.FindAll()
 	if err != nil {
-		log.Fatal(err)
+		shout.Error.Fatal(err)
 	}
 	for _, collection := range collections {
 		slug := "/" + collection.Plural

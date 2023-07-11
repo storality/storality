@@ -13,24 +13,25 @@ import (
 type Config struct {
 	Port     int
 	Headless bool
-	DataDir  string
 	CMD      string
 }
 
-func Load(port int, headless bool, dataDir string, cmd string) *Config {
+func init() {
+	dataDir := "./stor_data"
+	
 	if _, err := os.Stat(dataDir); os.IsNotExist(err) {
 		err = os.Mkdir(dataDir, 0755)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
+}
 
+func Write(port int, headless bool, cmd string) *Config {
 	configFile := "./stor_config.json"
-
 	config := &Config{
 		Port:     port,
 		Headless: headless,
-		DataDir:  dataDir,
 		CMD:      cmd,
 	}
 
@@ -43,6 +44,23 @@ func Load(port int, headless bool, dataDir string, cmd string) *Config {
 			log.Fatalf("Error loading existing configuration: %s", err)
 		}
 	}
+	return config
+}
+
+func Read() *Config {
+	configFile := "./stor_config.json"
+	config := &Config{}
+
+	_, err := os.Stat(configFile)
+	if os.IsNotExist(err) {
+		log.Fatal(err)
+	}
+
+	err = loadExistingConfig(configFile, config)
+	if err != nil {
+		log.Fatalf("Error loading existing configuration: %s", err)
+	}
+
 	return config
 }
 

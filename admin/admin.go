@@ -1,7 +1,6 @@
 package admin
 
 import (
-
 	"storality.com/storality/admin/routes"
 	"storality.com/storality/internal/app"
 )

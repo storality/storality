@@ -1,6 +1,5 @@
 {
-  "cmd": "server",
-  "datadir": "stor_data",
-  "headless": false,
-  "port": 3000
+ "cmd": "server",
+ "headless": false,
+ "port": 3000
 }
