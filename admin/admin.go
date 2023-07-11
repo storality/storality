@@ -8,7 +8,7 @@ import (
 
 type Admin struct {}
 
-func Init(app *app.Core, headless bool) (*Admin, error) {
+func Run(app *app.Core, headless bool) (*Admin, error) {
 	basePath := "/admin/"
 	if headless {
 		basePath = "/"

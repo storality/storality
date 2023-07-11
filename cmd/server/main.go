@@ -9,6 +9,7 @@ import (
 	"storality.com/storality/admin"
 	"storality.com/storality/config"
 	"storality.com/storality/internal/app"
+	"storality.com/storality/internal/helpers/logging"
 	"storality.com/storality/web"
 )
 
@@ -18,27 +19,29 @@ func main() {
 	dataDir := flag.String("data-dir", "stor_data", "The directory for the data")
 	flag.Parse()
 
-	router := http.NewServeMux()
-	app := app.Bootstrap(*config.Load(*port, *headless, *dataDir, "server"), router)
+	config := *config.Load(*port, *headless, *dataDir, "server")
 
-	_, err := admin.Init(app, *headless)
+	router := http.NewServeMux()
+	app := app.Bootstrap(config, router)
+
+	_, err := admin.Run(app, config.Headless)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if !*headless {
-		_, err = web.Init(app)
+		_, err = web.Run(app)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	server := &http.Server{
-		Addr: ":" + fmt.Sprint(*port),
+		Addr: ":" + fmt.Sprint(config.Port),
 		Handler: router,
 	}
 
-	fmt.Printf("Starting server on :%d", *port)
+	logging.Serve.Printf("Starting server on :%d", config.Port)
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)

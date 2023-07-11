@@ -7,7 +7,7 @@ import (
 
 type Web struct {}
 
-func Init(app *app.Core) (*Web, error) {
+func Run(app *app.Core) (*Web, error) {
 	routes.Handle(app)
 	return &Web{}, nil
 }

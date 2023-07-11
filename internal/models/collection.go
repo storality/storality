@@ -10,7 +10,7 @@ import (
 
 type Collection struct {
 	ID 				int
-	Name 		string
+	Name 			string
 	Plural 		string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -29,9 +29,10 @@ func (m *CollectionModel) CreateTable() {
 		if err == sql.ErrNoRows {
 			stmt := `CREATE TABLE collections (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				name TEXT NOT NULL,
-				plural TEXT NOT NULL,
-				createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+				name TEXT NOT NULL UNIQUE,
+				plural TEXT NOT NULL UNIQUE,
+				createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			);`
 		
 			_, err = m.DB.Exec(stmt)
@@ -52,8 +53,8 @@ func (m *CollectionModel) CreateTable() {
 
 func (m *CollectionModel) Insert(name string, plural string) (int, error) {
 	createdAt := time.Now()
-	stmt := "INSERT INTO collections (name, plural, createdAt) VALUES (?, ?, ?)"
-	result, err := m.DB.Exec(stmt, name, plural, createdAt)
+	stmt := "INSERT INTO collections (name, plural, createdAt, updatedAt) VALUES (?, ?, ?, ?)"
+	result, err := m.DB.Exec(stmt, name, plural, createdAt, createdAt)
 	if err != nil {
 		return 0, err
 	}
@@ -65,10 +66,16 @@ func (m *CollectionModel) Insert(name string, plural string) (int, error) {
 }
 
 func (m *CollectionModel) FindById(id int) (*Collection, error) {
-	stmt := `SELECT id, name, plural, createdAt FROM collections WHERE id = ?`
+	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections WHERE id = ?`
 	row := m.DB.QueryRow(stmt, id)
 	collection := &Collection{}
-	err := row.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
+	err := row.Scan(
+		&collection.ID,
+		&collection.Name,
+		&collection.Plural,
+		&collection.CreatedAt,
+		&collection.UpdatedAt,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -80,10 +87,16 @@ func (m *CollectionModel) FindById(id int) (*Collection, error) {
 }
 
 func (m *CollectionModel) FindByName(name string) (*Collection, error) {
-	stmt := `SELECT id, name, plural, createdAt FROM collections WHERE name = ?`
+	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections WHERE name = ?`
 	row := m.DB.QueryRow(stmt, name)
 	collection := &Collection{}
-	err := row.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
+	err := row.Scan(
+		&collection.ID,
+		&collection.Name,
+		&collection.Plural,
+		&collection.CreatedAt,
+		&collection.UpdatedAt,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -96,10 +109,16 @@ func (m *CollectionModel) FindByName(name string) (*Collection, error) {
 
 func (m *CollectionModel) FindBySlug(slug string) (*Collection, error) {
 	plural := strings.Trim(slug, "/")
-	stmt := `SELECT id, name, plural, createdAt FROM collections WHERE plural = ?`
+	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections WHERE plural = ?`
 	row := m.DB.QueryRow(stmt, plural)
 	collection := &Collection{}
-	err := row.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
+	err := row.Scan(
+		&collection.ID,
+		&collection.Name,
+		&collection.Plural,
+		&collection.CreatedAt,
+		&collection.UpdatedAt,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -111,7 +130,7 @@ func (m *CollectionModel) FindBySlug(slug string) (*Collection, error) {
 }
 
 func (m *CollectionModel) FindAll() ([]*Collection, error) {
-	stmt := `SELECT id, name, plural, createdAt FROM collections`
+	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections`
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -120,7 +139,13 @@ func (m *CollectionModel) FindAll() ([]*Collection, error) {
 	collections := []*Collection{}
 	for rows.Next() {
 		collection := &Collection{}
-		err = rows.Scan(&collection.ID, &collection.Name, &collection.Plural, &collection.CreatedAt)
+		err = rows.Scan(
+			&collection.ID,
+			&collection.Name,
+			&collection.Plural,
+			&collection.CreatedAt,
+			&collection.UpdatedAt,
+		)
 		if err != nil {
 			return nil , err
 		}

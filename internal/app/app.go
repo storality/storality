@@ -3,7 +3,6 @@ package app
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"storality.com/storality/config"
 	"storality.com/storality/internal/db"
@@ -20,16 +19,6 @@ func Bootstrap(cfg config.Config, router *http.ServeMux) *Core {
 	app := &Core{}
 	app.Config = &cfg
 	app.Router = router
-	app.verifyDataDir()
 	app.DB = db.Connect(cfg.DataDir)
 	return app
-}
-
-func (app *Core) verifyDataDir() {
-	if _, err := os.Stat("stor_data"); os.IsNotExist(err) {
-		err = os.Mkdir("stor_data", 0755)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 }
