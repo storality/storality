@@ -6,6 +6,8 @@ import (
 	"log"
 	"strings"
 	"time"
+
+	"storality.com/storality/internal/helpers/exceptions"
 )
 
 type Collection struct {
@@ -77,7 +79,7 @@ func (m *CollectionModel) FindById(id int) (*Collection, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoRecord
+			return nil, exceptions.ErrNoRecord
 		} else {
 			return nil, err
 		}
@@ -98,7 +100,7 @@ func (m *CollectionModel) FindByName(name string) (*Collection, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoRecord
+			return nil, exceptions.ErrNoRecord
 		} else {
 			return nil, err
 		}
@@ -120,7 +122,7 @@ func (m *CollectionModel) FindBySlug(slug string) (*Collection, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoRecord
+			return nil, exceptions.ErrNoRecord
 		} else {
 			return nil, err
 		}
