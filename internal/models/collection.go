@@ -34,7 +34,6 @@ func (m *CollectionModel) CreateTable() {
 				createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			);`
-		
 			_, err = m.DB.Exec(stmt)
 			if err != nil {
 				log.Fatal(err)

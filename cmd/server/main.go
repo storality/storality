@@ -27,7 +27,7 @@ func main() {
 		shout.Error.Fatal(err)
 	}
 
-	if !*headless {
+	if !config.Headless {
 		_, err = web.Run(app)
 		if err != nil {
 			shout.Error.Fatal(err)
@@ -38,8 +38,7 @@ func main() {
 		Addr: ":" + fmt.Sprint(config.Port),
 		Handler: router,
 	}
-
-	shout.Info.Printf("Starting server on :%d", config.Port)
+	fmt.Printf("\033[38;5;209mStarting server on :%d\033[0m\n", config.Port)
 	err = server.ListenAndServe()
 	if err != nil {
 		shout.Error.Fatal(err)
