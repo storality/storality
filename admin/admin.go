@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"storality.com/storality/admin/routes"
 	"storality.com/storality/internal/app"
 )
 
@@ -12,6 +11,6 @@ func Run(app *app.Core, headless bool) (*Admin, error) {
 	if headless {
 		basePath = "/"
 	}
-	routes.Handle(app, basePath)
+	router(app, basePath)
 	return &Admin{}, nil
 }

@@ -16,6 +16,8 @@ type Config struct {
 	CMD      string
 }
 
+var configFile string = "./storality.config.json"
+
 func init() {
 	dataDir := "./stor_data"
 	
@@ -28,7 +30,6 @@ func init() {
 }
 
 func Write(port int, headless bool, cmd string) *Config {
-	configFile := "./stor_config.json"
 	config := &Config{
 		Port:     port,
 		Headless: headless,
@@ -48,7 +49,6 @@ func Write(port int, headless bool, cmd string) *Config {
 }
 
 func Read() *Config {
-	configFile := "./stor_config.json"
 	config := &Config{}
 
 	_, err := os.Stat(configFile)
