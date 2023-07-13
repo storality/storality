@@ -8,5 +8,6 @@ import (
 )
 
 func CollectionListing(w http.ResponseWriter, collection *models.Collection) {
-	fmt.Fprintf(w, "Listing all %s", collection.Plural)
+	w.Header().Add("Content-Type", "text/html")
+	fmt.Fprintf(w, "<h1>Listing all %s</h1>", collection.Plural)
 }

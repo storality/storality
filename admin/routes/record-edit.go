@@ -9,5 +9,6 @@ import (
 )
 
 func CollectionEdit(w http.ResponseWriter, id int, collection *models.Collection, app *app.Core) {
-	fmt.Fprintf(w, "Editing %s %d", collection.Name, id)
+	w.Header().Add("Content-Type", "text/html")
+	fmt.Fprintf(w, "<h1>Editing %s %d</h1>", collection.Name, id)
 }

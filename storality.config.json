@@ -1,5 +1,5 @@
 {
-  "cmd": "server",
-  "headless": true,
-  "port": 3000
+ "cmd": "server",
+ "headless": false,
+ "port": 3000
 }

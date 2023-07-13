@@ -10,6 +10,6 @@ func Dashboard(w http.ResponseWriter, r *http.Request, basePath string) {
 		http.NotFound(w, r)
 		return
 	}
-
-	fmt.Fprintln(w, "Dashboard")
+	w.Header().Add("Content-Type", "text/html")
+	fmt.Fprintln(w, "<h1>Dashboard</h1>")
 }

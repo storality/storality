@@ -24,9 +24,8 @@ type CollectionModel struct {
 
 func (m *CollectionModel) CreateTable() {
 
-	var temp string
 	var err error
-	err = m.DB.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='collections'").Scan(&temp)
+	err = m.DB.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='collections'").Scan()
 	if err != nil {
 		if err == sql.ErrNoRows {
 			stmt := `CREATE TABLE collections (

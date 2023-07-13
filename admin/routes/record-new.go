@@ -8,5 +8,6 @@ import (
 )
 
 func CollectionNew(w http.ResponseWriter, collection *models.Collection) {
-	fmt.Fprintf(w, "Creating new %s", collection.Name)
+	w.Header().Add("Content-Type", "text/html")
+	fmt.Fprintf(w, "<h1>Creating new %s</h1>", collection.Name)
 }
