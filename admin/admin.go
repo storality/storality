@@ -1,16 +1,31 @@
 package admin
 
 import (
+	"html/template"
+
 	"storality.com/storality/internal/app"
+	"storality.com/storality/internal/helpers/shout"
 )
 
-type Admin struct {}
+type Admin struct {
+	basePath 			string
+	templateCache map[string]*template.Template
+}
 
 func Run(app *app.Core, headless bool) (*Admin, error) {
-	basePath := "/admin/"
+	admin := Admin{}
+
+	admin.basePath = "/admin/"
 	if headless {
-		basePath = "/"
+		admin.basePath = "/"
 	}
-	router(app, basePath)
-	return &Admin{}, nil
+
+	templateCache, err := CacheTemplates()
+	if err != nil {
+		shout.Error.Fatal(err)
+	}
+
+	admin.templateCache = templateCache
+	router(app, &admin)
+	return &admin, nil
 }
