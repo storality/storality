@@ -34,7 +34,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func collectionListing(w http.ResponseWriter, slug string, app *app.Core) {
-	collection, err := app.DB.Collections.FindBySlug(slug)
+	collection, err := app.DB.Collections.FindByPlural(slug)
 	if err != nil {
 		fmt.Fprintln(w, "404 - Not Found")
 		return

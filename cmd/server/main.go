@@ -32,6 +32,7 @@ func main() {
 		Addr: ":" + fmt.Sprint(config.Port),
 		Handler: router,
 	}
+	
 	fmt.Printf("\033[38;5;209mStarting server on :%d\033[0m\n", config.Port)
 	err = server.ListenAndServe()
 	if err != nil {

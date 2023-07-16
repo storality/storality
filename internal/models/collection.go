@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"strings"
 	"time"
 
@@ -22,33 +21,36 @@ type CollectionModel struct {
 	DB *sql.DB
 }
 
-func (m *CollectionModel) CreateTable() {
-
-	var err error
-	err = m.DB.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='collections'").Scan()
+func (m *CollectionModel) Verify() error {
+	var tableExists bool
+	query := `SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type='table' AND name='collections')`
+	err := m.DB.QueryRow(query).Scan(&tableExists)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			stmt := `CREATE TABLE collections (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				name TEXT NOT NULL UNIQUE,
-				plural TEXT NOT NULL UNIQUE,
-				createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-			);`
-			_, err = m.DB.Exec(stmt)
-			if err != nil {
-				log.Fatal(err)
-			}
-			_, err := m.Insert("post", "posts")
-			if err != nil {
-				log.Fatal(err)
-			}
-			_, err = m.Insert("page", "pages")
-			if err != nil {
-				log.Fatal(err)
-			}
+		return err
+	}
+	if !tableExists {
+		stmt := `CREATE TABLE collections (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL UNIQUE,
+			plural TEXT NOT NULL UNIQUE,
+			createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);`
+		_, err = m.DB.Exec(stmt)
+		if err != nil {
+			return err
+		}
+
+		_, err := m.Insert("post", "posts")
+		if err != nil {
+			return err
+		}
+		_, err = m.Insert("page", "pages")
+		if err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
 func (m *CollectionModel) Insert(name string, plural string) (int, error) {
@@ -107,10 +109,10 @@ func (m *CollectionModel) FindByName(name string) (*Collection, error) {
 	return collection, nil
 }
 
-func (m *CollectionModel) FindBySlug(slug string) (*Collection, error) {
-	plural := strings.Trim(slug, "/")
+func (m *CollectionModel) FindByPlural(plural string) (*Collection, error) {
+	trim := strings.Trim(plural, "/")
 	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections WHERE plural = ?`
-	row := m.DB.QueryRow(stmt, plural)
+	row := m.DB.QueryRow(stmt, trim)
 	collection := &Collection{}
 	err := row.Scan(
 		&collection.ID,

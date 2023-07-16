@@ -10,6 +10,7 @@ import (
 
 type DB struct {
 	Collections *models.CollectionModel
+	Records *models.RecordModel
 }
 
 func Connect() *DB {
@@ -25,8 +26,13 @@ func Connect() *DB {
 
 	db := &DB{
 		Collections: &models.CollectionModel{DB: database},
+		Records: &models.RecordModel{DB: database},
 	}
-	db.Collections.CreateTable()
+
+	err = db.Collections.Verify()
+	if err != nil {
+		shout.Error.Fatal(err)
+	}
 	return db
 }
 

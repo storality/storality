@@ -33,6 +33,10 @@ func New(cmd string) *Config {
 	if err != nil {
 		config.Port = *flags.Port
 		config.Headless = *flags.Headless
+	} else {
+		if config.Port == 0 {
+			config.Port = 3000
+		}
 	}
 	config.CMD = cmd
 
