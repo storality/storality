@@ -1,0 +1,8 @@
+{{ define "main" }}
+<form action="{{.Route}}" method="post">
+  <label for="title">
+    <input required type="text" id="title" name="title" placeholder="Title" />
+  </label>
+  <button>Save</button>
+</form>
+{{ end }}

@@ -1,1 +1,11 @@
-<nav class="menu">Menu</nav>
+{{ define "menu" }} {{$basePath:=.BasePath}}
+<nav class="menu">
+  <ul>
+    {{ range .Collections }}
+    <li>
+      <a href="{{$basePath}}{{.Plural}}">{{ .Plural }}</a>
+    </li>
+    {{ end }}
+  </ul>
+</nav>
+{{ end }}

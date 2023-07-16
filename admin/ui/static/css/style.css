@@ -1,0 +1,86 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-size: 16px;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  background: #f0f0f1;
+  color: #1d2327;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+nav {
+  background: #1d2327;
+  color: #f0f0f1;
+  height: 100%;
+  padding: 0.5rem;
+}
+
+nav ul,
+nav ul li {
+  width: 100%;
+}
+
+nav a {
+  width: 100%;
+  display: block;
+  color: currentColor;
+  text-decoration: none;
+  text-transform: capitalize;
+  font-weight: 300;
+  padding: 0.25rem 0.5rem;
+}
+
+main {
+  padding: 1rem 1.5rem;
+}
+
+h1 {
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+input,
+textarea {
+  padding: 1rem;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  min-width: 50%;
+}
+
+button {
+  display: block;
+  background: #1d2327;
+  color: white;
+  border-radius: 0.25rem;
+  padding: 0.75rem 1rem;
+  border: navajowhite;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-bottom: 1rem;
+}
