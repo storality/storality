@@ -6,8 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
-	"reflect"
-	"strings"
+
+	"storality.com/storality/internal/helpers/flags"
 )
 
 type Config struct {
@@ -20,7 +20,6 @@ var configFile string = "./storality.config.json"
 
 func init() {
 	dataDir := "./stor_data"
-	
 	if _, err := os.Stat(dataDir); os.IsNotExist(err) {
 		err = os.Mkdir(dataDir, 0755)
 		if err != nil {
@@ -29,73 +28,36 @@ func init() {
 	}
 }
 
-func Write(port int, headless bool, cmd string) *Config {
-	config := &Config{
-		Port:     port,
-		Headless: headless,
-		CMD:      cmd,
+func New(cmd string) *Config {
+	config, err := load()
+	if err != nil {
+		config.Port = *flags.Port
+		config.Headless = *flags.Headless
+	}
+	config.CMD = cmd
+
+	if flags.IsPassed("port") {
+		config.Port = *flags.Port
 	}
 
-	_, err := os.Stat(configFile)
-	if os.IsNotExist(err) {
-		saveDefaultConfig(configFile, config)
-	} else {
-		err = loadExistingConfig(configFile, config)
-		if err != nil {
-			log.Fatalf("Error loading existing configuration: %s", err)
-		}
+	if flags.IsPassed("headless") {
+		config.Headless = *flags.Headless
 	}
-	return config
+
+	return &config
 }
 
-func Read() *Config {
-	config := &Config{}
-
+func load() (Config, error) {
+	config := Config{}
 	_, err := os.Stat(configFile)
 	if os.IsNotExist(err) {
-		log.Fatal(err)
+		return config, err
 	}
-
-	err = loadExistingConfig(configFile, config)
+	err = loadExistingConfig(configFile, &config)
 	if err != nil {
 		log.Fatalf("Error loading existing configuration: %s", err)
 	}
-
-	return config
-}
-
-func saveDefaultConfig(configFile string, config *Config) {
-	file, err := os.OpenFile(configFile, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		log.Fatalln("Failed to open log file:", err)
-	}
-	defer file.Close()
-
-	lowercaseConfig := convertToLowerCaseProperties(config)
-	configJSON, err := json.MarshalIndent(lowercaseConfig, "", " ")
-	if err != nil {
-		log.Fatalf("Error marshaling default configuration to JSON: %s", err)
-	}
-
-	_, err = file.Write(configJSON)
-	if err != nil {
-		log.Fatalf("Error writing default configuration to file: %s", err)
-	}
-}
-
-func convertToLowerCaseProperties(config *Config) interface{} {
-	value := reflect.ValueOf(config).Elem()
-	typeOfValue := value.Type()
-
-	lowercaseConfig := make(map[string]interface{})
-	for i := 0; i < value.NumField(); i++ {
-		field := value.Field(i)
-		fieldName := strings.ToLower(typeOfValue.Field(i).Name)
-
-		lowercaseConfig[fieldName] = field.Interface()
-	}
-
-	return lowercaseConfig
+	return config, nil
 }
 
 func loadExistingConfig(configFile string, config *Config) error {

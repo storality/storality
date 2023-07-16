@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net/http"
 
@@ -13,14 +12,9 @@ import (
 )
 
 func main() {
-	port := flag.Int("port", 3000, "The port")
-	headless := flag.Bool("headless", false, "Run in headless mode")
-	flag.Parse()
-
-	config := *config.Write(*port, *headless, "server")
-
+	config := config.New("server")
 	router := http.NewServeMux()
-	app := app.Bootstrap(config, router)
+	app := app.Bootstrap(*config, router)
 
 	_, err := admin.Run(app, config.Headless)
 	if err != nil {
