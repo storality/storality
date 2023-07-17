@@ -30,7 +30,7 @@ func router(app *app.Core, admin *Admin) {
 			id, err := strconv.Atoi(param)
 			if err != nil {
 				if param == "new" {
-					handleRecord(w, r, admin, collections, collection, id)
+					handleRecord(w, r, admin, app, collections, collection, id)
 				} else {
 					if param == "" {
 						handleRecords(w, r, admin, collections, collection)
@@ -39,7 +39,7 @@ func router(app *app.Core, admin *Admin) {
 					}
 				}
 			} else {
-				handleRecord(w, r, admin, collections, collection, id)
+				handleRecord(w, r, admin, app, collections, collection, id)
 			}
 		})
 	}
@@ -50,26 +50,36 @@ func router(app *app.Core, admin *Admin) {
 }
 
 func handleIndex(w http.ResponseWriter, r *http.Request, admin *Admin, collections []*models.Collection) {
+	r.Header.Set("Allow", "GET")
 	if r.URL.Path != admin.basePath {
 		exceptions.NotFound(w)
 		return
 	}
 	data := admin.CreateTemplateData(r)
+	data.Title = "Dashboard"
 	data.Collections = collections
 	admin.render(w, http.StatusOK, "index.html", data)
 }
 
 func handleRecords(w http.ResponseWriter, r *http.Request, admin *Admin, collections []*models.Collection, collection *models.Collection) {
+	r.Header.Set("Allow", "GET")
 	data := admin.CreateTemplateData(r)
+	data.Title = transforms.Capitalize(collection.Plural)
 	data.Collections = collections
 	data.Collection = collection
 	admin.render(w, http.StatusOK, "records.html", data)
 }
 
-func handleRecord(w http.ResponseWriter, r *http.Request, admin *Admin, collections []*models.Collection, collection *models.Collection, id int) {
-	data := admin.CreateTemplateData(r)
-	data.Collections = collections
-	data.Collection = collection
-	admin.render(w, http.StatusOK, "record.html", data)
+func handleRecord(w http.ResponseWriter, r *http.Request, admin *Admin, app *app.Core, collections []*models.Collection, collection *models.Collection, id int) {
+	r.Header.Set("Allow", "GET, POST")
+	if r.Method == "POST" {
+		
+	} else {
+		data := admin.CreateTemplateData(r)
+		data.Title = transforms.Capitalize(collection.Name)
+		data.Collections = collections
+		data.Collection = collection
+		admin.render(w, http.StatusOK, "record.html", data)
+	}
 }
 

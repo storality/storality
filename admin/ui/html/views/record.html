@@ -1,8 +1,17 @@
-{{ define "main" }}
+{{define "main"}}
 <form action="{{.Route}}" method="post">
   <label for="title">
     <input required type="text" id="title" name="title" placeholder="Title" />
   </label>
+  <label for="content">
+    <textarea
+      required
+      type="text"
+      id="content"
+      name="content"
+      placeholder="Content"
+    ></textarea>
+  </label>
   <button>Save</button>
 </form>
-{{ end }}
+{{end}}

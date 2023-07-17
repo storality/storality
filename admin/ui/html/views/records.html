@@ -1,4 +1,6 @@
-{{ define "main" }}
-<button>New {{capitalize .Collection.Name}}</button>
-<h1>Show all {{.Collection.Plural}}</h1>
-{{ end }}
+{{define "main"}}{{$basePath:=.BasePath}}
+<a href="{{$basePath}}{{.Collection.Plural}}/new" class="button"
+  >New {{capitalize .Collection.Name}}</a
+>
+<h1>Showing all {{.Collection.Plural}}</h1>
+{{end}}

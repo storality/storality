@@ -15,6 +15,7 @@ import (
 type Template struct {
 	BasePath 		string
 	Route				string
+	Title 			string
 	Collection 	*models.Collection
 	Collections []*models.Collection
 }

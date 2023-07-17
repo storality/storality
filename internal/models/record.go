@@ -13,7 +13,7 @@ type Record struct {
 	Title 			string
 	Slug 				string
 	Content 		string
-	Collection 	Collection
+	Collection 	*Collection
 	CreatedAt 	time.Time
 	UpdatedAt 	time.Time
 }
@@ -86,7 +86,7 @@ func (m *RecordModel) FindById(id int) (*Record, error) {
 		&record.Title,
 		&record.Slug,
 		&record.Content,
-		&record.Collection,
+		&record.Collection.ID,
 		&record.CreatedAt,
 		&record.UpdatedAt,
 	)
@@ -97,6 +97,14 @@ func (m *RecordModel) FindById(id int) (*Record, error) {
 			return nil, err
 		}
 	}
+
+	collectionModel := &CollectionModel{DB: m.DB}
+	collection, err := collectionModel.FindById(record.Collection.ID)
+	if err != nil {
+			return nil, err
+	}
+	record.Collection = collection
+
 	return record, nil
 }
 
@@ -109,7 +117,7 @@ func (m *RecordModel) FindByTitle(title string) (*Record, error) {
 		&record.Title,
 		&record.Slug,
 		&record.Content,
-		&record.Collection,
+		&record.Collection.ID,
 		&record.CreatedAt,
 		&record.UpdatedAt,
 	)
@@ -120,6 +128,14 @@ func (m *RecordModel) FindByTitle(title string) (*Record, error) {
 			return nil, err
 		}
 	}
+
+	collectionModel := &CollectionModel{DB: m.DB}
+	collection, err := collectionModel.FindById(record.Collection.ID)
+	if err != nil {
+			return nil, err
+	}
+	record.Collection = collection
+
 	return record, nil
 }
 
@@ -132,7 +148,7 @@ func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
 		&record.Title,
 		&record.Slug,
 		&record.Content,
-		&record.Collection,
+		&record.Collection.ID,
 		&record.CreatedAt,
 		&record.UpdatedAt,
 	)
@@ -143,6 +159,14 @@ func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
 			return nil, err
 		}
 	}
+
+	collectionModel := &CollectionModel{DB: m.DB}
+	collection, err := collectionModel.FindById(record.Collection.ID)
+	if err != nil {
+			return nil, err
+	}
+	record.Collection = collection
+
 	return record, nil
 }
 
@@ -161,13 +185,21 @@ func (m *RecordModel) FindAll() ([]*Record, error) {
 			&record.Title,
 			&record.Slug,
 			&record.Content,
-			&record.Collection,
+			&record.Collection.ID,
 			&record.CreatedAt,
 			&record.UpdatedAt,
 		)
 		if err != nil {
 			return nil , err
 		}
+
+		collectionModel := &CollectionModel{DB: m.DB}
+		collection, err := collectionModel.FindById(record.Collection.ID)
+		if err != nil {
+				return nil, err
+		}
+		record.Collection = collection
+
 		records = append(records, record)
 	}
 	if rows.Err(); err != nil {
