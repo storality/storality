@@ -3,11 +3,16 @@ package routes
 import (
 	"net/http"
 
+	"storality.com/storality/internal/app"
 	"storality.com/storality/internal/helpers/exceptions"
 )
 
-func (route *Base) Index(w http.ResponseWriter, r *http.Request) {
-	r.Header.Set("Allow", "GET")
+func (route *Base) Index(app *app.Core, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allowed", http.MethodGet)
+		exceptions.ClientError(w, http.StatusMethodNotAllowed)
+		return
+	}
 	if r.URL.Path != route.BasePath {
 		exceptions.NotFound(w)
 		return

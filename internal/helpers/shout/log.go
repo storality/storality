@@ -4,6 +4,8 @@ import (
 	"io"
 	"log"
 	"os"
+
+	_ "storality.com/storality/internal/config"
 )
 
 var (

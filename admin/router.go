@@ -15,7 +15,7 @@ import (
 )
 
 func (admin *Admin) router(app *app.Core) {
-	collections, err := app.DB.Collections.FindAll()
+	collections, err := app.DB.Collections.FindMany()
 	if err != nil {
 		shout.Error.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func (admin *Admin) router(app *app.Core) {
 	app.Router.Handle("/static/", http.StripPrefix("/static", filerServer))
 
 	app.Router.HandleFunc(admin.basePath, func(w http.ResponseWriter, r *http.Request) {
-		routes.Index(w, r)
+		routes.Index(app, w, r)
 	})
 
 	for _, col := range routes.Collections {
@@ -47,19 +47,19 @@ func (admin *Admin) router(app *app.Core) {
 		app.Router.HandleFunc(fmt.Sprintf("%s%s/", admin.basePath, transforms.Slugify(collection.Plural)), func(w http.ResponseWriter, r *http.Request) {
 			path := r.URL.Path
 			param := strings.TrimPrefix(path, fmt.Sprintf("%s%s/", admin.basePath, transforms.Slugify(collection.Plural)))
-			id, err := strconv.Atoi(param)
+			_, err := strconv.Atoi(param)
 			if err != nil {
 				if param == "new" {
-					routes.Record(w, r, collection, id)
+					routes.Record(app, w, r, collection, param)
 				} else {
 					if param == "" {
-						routes.Records(w, r, collection)
+						routes.Records(app, w, r, collection)
 					} else {
 						exceptions.NotFound(w)
 					}
 				}
 			} else {
-				routes.Record(w, r, collection, id)
+				routes.Record(app, w, r, collection, param)
 			}
 		})
 	}

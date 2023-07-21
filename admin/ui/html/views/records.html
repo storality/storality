@@ -1,6 +1,17 @@
-{{define "main"}}{{$basePath:=.BasePath}}
+{{define "main"}} {{$basePath := .BasePath}} {{$records := .Records}}
 <a href="{{$basePath}}{{.Collection.Plural}}/new" class="button"
   >New {{capitalize .Collection.Name}}</a
 >
 <h1>Showing all {{.Collection.Plural}}</h1>
+
+{{if .Notice}}
+<div class="notice">{{.Notice.Message}}</div>
+{{end}}
+<table>
+  {{range $index, $record := $records}}
+  <tr>
+    <td>{{$record.Title}}</td>
+  </tr>
+  {{end}}
+</table>
 {{end}}

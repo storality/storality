@@ -29,10 +29,8 @@ func Connect() *DB {
 		Records: &models.RecordModel{DB: database},
 	}
 
-	err = db.Collections.Verify()
-	if err != nil {
-		shout.Error.Fatal(err)
-	}
+	db.Collections.Init()
+	db.Records.Init()
 	return db
 }
 

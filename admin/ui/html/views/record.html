@@ -1,7 +1,20 @@
 {{define "main"}}
 <form action="{{.Route}}" method="post">
+  {{if .Notice}}
+  <div class="notice">{{.Notice.Message}}</div>
+  {{end}}
   <label for="title">
-    <input required type="text" id="title" name="title" placeholder="Title" />
+    <input
+      required
+      type="text"
+      id="title"
+      name="title"
+      {{if
+      .Record.Title}}
+      value="{{.Record.Title}}"
+      {{end}}
+      placeholder="Title"
+    />
   </label>
   <label for="content">
     <textarea
@@ -10,7 +23,9 @@
       id="content"
       name="content"
       placeholder="Content"
-    ></textarea>
+    >
+{{if .Record.Content}}{{.Record.Content}}{{end}}</textarea
+    >
   </label>
   <button>Save</button>
 </form>

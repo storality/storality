@@ -3,9 +3,11 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"storality.com/storality/internal/helpers/exceptions"
+	"storality.com/storality/internal/helpers/shout"
 )
 
 type Record struct {
@@ -18,39 +20,43 @@ type Record struct {
 	UpdatedAt 	time.Time
 }
 
+type Filter struct {
+	Collection Collection
+}
+
 type RecordModel struct {
 	DB *sql.DB
 }
 
-func (m *RecordModel) VerifyTable() error {
+func (m *RecordModel) Init() {
 	var tableExists bool
 	query := `SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type='table' AND name='records')`
 	err := m.DB.QueryRow(query).Scan(&tableExists)
 	if err != nil {
-		return err
+		shout.Error.Fatal(err)
 	}
 	if !tableExists {
 		stmt := `CREATE TABLE records (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			title TEXT NOT NULL UNIQUE,
-			slug TEXT NOT NULL UNIQUE,
-			content TEXT NOT NULL UNIQUE,
+			title TEXT NOT NULL,
+			slug TEXT NOT NULL,
+			content TEXT NOT NULL,
 			createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			collection INTEGER NOT NULL,
-			FOREIGN_KEY (collection) REFERENCES collections(id)
-		)`
+			FOREIGN KEY (collection) REFERENCES collections(id)
+		);`
 		_, err = m.DB.Exec(stmt)
 		if err != nil {
-			return err
+			shout.Error.Fatal(err)
 		}
 	}
-	return nil
+
 }
 
 func (m *RecordModel) Insert(title string, slug string, content string, collection Collection) (int, error) {
 	createdAt := time.Now()
-	stmt := `INSERT INTO collections (
+	stmt := `INSERT INTO records (
 		title,
 		slug,
 		content,
@@ -78,9 +84,11 @@ func (m *RecordModel) Insert(title string, slug string, content string, collecti
 }
 
 func (m *RecordModel) FindById(id int) (*Record, error) {
-	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM collections WHERE id = ?`
+	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM records WHERE id = ?`
 	row := m.DB.QueryRow(stmt, id)
-	record := &Record{}
+	record := &Record{
+		Collection: &Collection{},
+	}
 	err := row.Scan(
 		&record.ID,
 		&record.Title,
@@ -109,9 +117,11 @@ func (m *RecordModel) FindById(id int) (*Record, error) {
 }
 
 func (m *RecordModel) FindByTitle(title string) (*Record, error) {
-	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM collections WHERE title = ?`
+	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM records WHERE title = ?`
 	row := m.DB.QueryRow(stmt, title)
-	record := &Record{}
+	record := &Record{
+		Collection: &Collection{},
+	}
 	err := row.Scan(
 		&record.ID,
 		&record.Title,
@@ -140,9 +150,11 @@ func (m *RecordModel) FindByTitle(title string) (*Record, error) {
 }
 
 func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
-	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM collections WHERE slug = ?`
+	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM records WHERE slug = ?`
 	row := m.DB.QueryRow(stmt, slug)
-	record := &Record{}
+	record := &Record{
+		Collection: &Collection{},
+	}
 	err := row.Scan(
 		&record.ID,
 		&record.Title,
@@ -170,8 +182,13 @@ func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
 	return record, nil
 }
 
-func (m *RecordModel) FindAll() ([]*Record, error) {
+func (m *RecordModel) FindMany(filter *Filter) ([]*Record, error) {
 	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM records`
+
+	if filter.Collection != (Collection{}) {
+		stmt += fmt.Sprintf(" WHERE collection = %d", filter.Collection.ID)
+	}
+
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -179,7 +196,9 @@ func (m *RecordModel) FindAll() ([]*Record, error) {
 	defer rows.Close()
 	records := []*Record{}
 	for rows.Next() {
-		record := &Record{}
+		record := &Record{
+			Collection: &Collection{},
+		}
 		err = rows.Scan(
 			&record.ID,
 			&record.Title,
@@ -192,14 +211,12 @@ func (m *RecordModel) FindAll() ([]*Record, error) {
 		if err != nil {
 			return nil , err
 		}
-
 		collectionModel := &CollectionModel{DB: m.DB}
 		collection, err := collectionModel.FindById(record.Collection.ID)
 		if err != nil {
 				return nil, err
 		}
 		record.Collection = collection
-
 		records = append(records, record)
 	}
 	if rows.Err(); err != nil {

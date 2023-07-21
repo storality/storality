@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"storality.com/storality/internal/helpers/exceptions"
+	"storality.com/storality/internal/helpers/shout"
 )
 
 type Collection struct {
@@ -21,33 +22,33 @@ type CollectionModel struct {
 	DB *sql.DB
 }
 
-func (m *CollectionModel) Verify() error {
+func (m *CollectionModel) Init() error {
 	var tableExists bool
 	query := `SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type='table' AND name='collections')`
 	err := m.DB.QueryRow(query).Scan(&tableExists)
 	if err != nil {
-		return err
+		shout.Error.Fatal(err)
 	}
 	if !tableExists {
 		stmt := `CREATE TABLE collections (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT NOT NULL UNIQUE,
-			plural TEXT NOT NULL UNIQUE,
+			name TEXT NOT NULL,
+			plural TEXT NOT NULL,
 			createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`
 		_, err = m.DB.Exec(stmt)
 		if err != nil {
-			return err
+			shout.Error.Fatal(err)
 		}
 
 		_, err := m.Insert("post", "posts")
 		if err != nil {
-			return err
+			shout.Error.Fatal(err)
 		}
 		_, err = m.Insert("page", "pages")
 		if err != nil {
-			return err
+			shout.Error.Fatal()
 		}
 	}
 	return nil
@@ -68,7 +69,7 @@ func (m *CollectionModel) Insert(name string, plural string) (int, error) {
 }
 
 func (m *CollectionModel) FindById(id int) (*Collection, error) {
-	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections WHERE id = ?`
+	stmt := `SELECT * FROM collections WHERE id = ?`
 	row := m.DB.QueryRow(stmt, id)
 	collection := &Collection{}
 	err := row.Scan(
@@ -131,7 +132,7 @@ func (m *CollectionModel) FindByPlural(plural string) (*Collection, error) {
 	return collection, nil
 }
 
-func (m *CollectionModel) FindAll() ([]*Collection, error) {
+func (m *CollectionModel) FindMany() ([]*Collection, error) {
 	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections`
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
