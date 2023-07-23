@@ -65,7 +65,8 @@ form {
 }
 
 input,
-textarea {
+textarea,
+select {
   padding: 0.75rem;
   background: white;
   border: 1px solid #ccc;
@@ -75,6 +76,10 @@ textarea {
 
 textarea {
   min-height: 200px;
+}
+
+select {
+  min-width: unset;
 }
 
 .button,

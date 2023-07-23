@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"storality.com/storality/admin/templates"
 	"storality.com/storality/internal/app"
 	"storality.com/storality/internal/helpers/exceptions"
 	"storality.com/storality/internal/helpers/input"
@@ -14,20 +15,23 @@ import (
 )
 
 func (route *Base) Record(app *app.Core, w http.ResponseWriter, r *http.Request, collection *models.Collection, param string) {
-	if r.Method != http.MethodGet && r.Method != http.MethodPost {
-		w.Header().Set("Allowed", fmt.Sprintf("%s, %s", http.MethodGet, http.MethodPost))
+	if r.Method != http.MethodGet && r.Method != http.MethodPost && r.Method != http.MethodDelete {
+		w.Header().Set("Allowed", fmt.Sprintf("%s, %s, %s", http.MethodGet, http.MethodPost, http.MethodDelete))
 		exceptions.ClientError(w, http.StatusMethodNotAllowed)
 		return
 	}
-	_, err := strconv.Atoi(param)
-	if r.Method == http.MethodPost {
-		if err != nil {
-			newRecord(w, r, route, app.DB.Records, collection)
-		} else {
-			updateRecord(w, r, app.DB.Records, collection, param)
-		}
-	} else {
-		getRecord(route, w, r, app.DB.Records, collection, param)
+	id, err := strconv.Atoi(param)
+	switch r.Method {
+		case http.MethodGet:
+			getRecord(route, w, r, app.DB.Records, collection, param)
+		case http.MethodPost:
+			if err != nil {
+				newRecord(w, r, route, app.DB.Records, collection)
+			} else {
+				updateRecord(w, r, route, app.DB.Records, collection, id)
+			}
+		case http.MethodDelete:
+			deleteRecord(w, r, route, app.DB.Records, collection, id)
 	}
 }
 
@@ -54,20 +58,49 @@ func getRecord(route *Base,w http.ResponseWriter, r *http.Request, model *models
 			Content: "",
 		}
 	}
+	message := r.URL.Query().Get("message")
+	notice := templates.Notice{}
+	switch message {
+		case "created":
+			notice.Type = "info"
+			notice.Message = "Saved successfully."
+		case "updated":
+			notice.Type = "info"
+			notice.Message = "Updated successfully."
+	}
+	data.Notice = notice
 	route.Template.Render(w, http.StatusOK, "record.html", data)
 }
 
 func newRecord(w http.ResponseWriter, r *http.Request, route *Base, model *models.RecordModel, collection *models.Collection) {
 	title := input.Sanitize(r.FormValue("title"))
 	content := input.Sanitize(r.FormValue("content"))
-	
 	id, err := model.Insert(title, transforms.Slugify(title), content, *collection)
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}
-	http.Redirect(w, r, fmt.Sprintf("%s%s/%d", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
+	err = model.UpdateStatus(id, models.StatusPublished)
+	if err != nil {
+		exceptions.ServerError(w, err)
+	}
+	http.Redirect(w, r, fmt.Sprintf("%s%s/%d?message=created", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
 }
 
-func updateRecord(w http.ResponseWriter, r *http.Request, model *models.RecordModel, collection *models.Collection, param string) {
+func updateRecord(w http.ResponseWriter, r *http.Request, route *Base, model *models.RecordModel, collection *models.Collection, id int) {
+	title := input.Sanitize(r.FormValue("title"))
+	content := input.Sanitize(r.FormValue("content"))
+	err := model.Update(id, title, content)
+	if err != nil {
+		exceptions.ServerError(w, err)
+	}
+	http.Redirect(w, r, fmt.Sprintf("%s%s/%d?message=updated", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
+}
 
+func deleteRecord(w http.ResponseWriter, r *http.Request, route *Base, model *models.RecordModel, collection *models.Collection, id int) {
+	fmt.Println("DELETE")
+	err := model.Delete(id)
+	if err != nil {
+		exceptions.ServerError(w, err)
+	}
+	http.Redirect(w, r, fmt.Sprintf("%s%s?message=deleted", route.BasePath, transforms.Slugify(collection.Plural)), http.StatusSeeOther)
 }

@@ -16,6 +16,7 @@ type Record struct {
 	Slug 				string
 	Content 		string
 	Collection 	*Collection
+	Status			Status
 	CreatedAt 	time.Time
 	UpdatedAt 	time.Time
 }
@@ -41,9 +42,10 @@ func (m *RecordModel) Init() {
 			title TEXT NOT NULL,
 			slug TEXT NOT NULL,
 			content TEXT NOT NULL,
+			collection INTEGER NOT NULL,
+			status TEXT NOT NULL,
 			createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			collection INTEGER NOT NULL,
 			FOREIGN KEY (collection) REFERENCES collections(id)
 		);`
 		_, err = m.DB.Exec(stmt)
@@ -61,15 +63,17 @@ func (m *RecordModel) Insert(title string, slug string, content string, collecti
 		slug,
 		content,
 		collection,
+		status,
 		createdAt,
 		updatedAt
-	) VALUES (?, ?, ?, ?, ?, ?)`
+	) VALUES (?, ?, ?, ?, ?, ?, ?)`
 	result, err := m.DB.Exec(
 		stmt,
 		title,
 		slug,
 		content,
 		collection.ID,
+		StatusDraft,
 		createdAt,
 		createdAt,
 	)
@@ -83,8 +87,28 @@ func (m *RecordModel) Insert(title string, slug string, content string, collecti
 	return int(id), nil
 }
 
+func (m *RecordModel) Update(id int, title string, content string) error {
+	updatedAt := time.Now()
+	stmt := "UPDATE records SET title = ?, content = ?, updatedAt = ? WHERE id = ?"
+	_, err := m.DB.Exec(stmt, title, content, updatedAt, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *RecordModel) UpdateStatus(id int, status Status) error {
+	updatedAt := time.Now()
+	stmt := "UPDATE records SET status = ?, updatedAt = ? WHERE id = ?"
+	_, err := m.DB.Exec(stmt, status, updatedAt, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *RecordModel) FindById(id int) (*Record, error) {
-	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM records WHERE id = ?`
+	stmt := `SELECT * FROM records WHERE id = ?`
 	row := m.DB.QueryRow(stmt, id)
 	record := &Record{
 		Collection: &Collection{},
@@ -95,6 +119,7 @@ func (m *RecordModel) FindById(id int) (*Record, error) {
 		&record.Slug,
 		&record.Content,
 		&record.Collection.ID,
+		&record.Status,
 		&record.CreatedAt,
 		&record.UpdatedAt,
 	)
@@ -117,7 +142,7 @@ func (m *RecordModel) FindById(id int) (*Record, error) {
 }
 
 func (m *RecordModel) FindByTitle(title string) (*Record, error) {
-	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM records WHERE title = ?`
+	stmt := `SELECT * FROM records WHERE title = ?`
 	row := m.DB.QueryRow(stmt, title)
 	record := &Record{
 		Collection: &Collection{},
@@ -128,6 +153,7 @@ func (m *RecordModel) FindByTitle(title string) (*Record, error) {
 		&record.Slug,
 		&record.Content,
 		&record.Collection.ID,
+		&record.Status,
 		&record.CreatedAt,
 		&record.UpdatedAt,
 	)
@@ -150,7 +176,7 @@ func (m *RecordModel) FindByTitle(title string) (*Record, error) {
 }
 
 func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
-	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM records WHERE slug = ?`
+	stmt := `SELECT * FROM records WHERE slug = ?`
 	row := m.DB.QueryRow(stmt, slug)
 	record := &Record{
 		Collection: &Collection{},
@@ -161,6 +187,7 @@ func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
 		&record.Slug,
 		&record.Content,
 		&record.Collection.ID,
+		&record.Status,
 		&record.CreatedAt,
 		&record.UpdatedAt,
 	)
@@ -178,17 +205,14 @@ func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
 			return nil, err
 	}
 	record.Collection = collection
-
 	return record, nil
 }
 
 func (m *RecordModel) FindMany(filter *Filter) ([]*Record, error) {
-	stmt := `SELECT id, title, slug, content, collection, createdAt, updatedAt FROM records`
-
+	stmt := "SELECT * FROM records"
 	if filter.Collection != (Collection{}) {
 		stmt += fmt.Sprintf(" WHERE collection = %d", filter.Collection.ID)
 	}
-
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -205,6 +229,7 @@ func (m *RecordModel) FindMany(filter *Filter) ([]*Record, error) {
 			&record.Slug,
 			&record.Content,
 			&record.Collection.ID,
+			&record.Status,
 			&record.CreatedAt,
 			&record.UpdatedAt,
 		)
@@ -223,4 +248,13 @@ func (m *RecordModel) FindMany(filter *Filter) ([]*Record, error) {
 		return nil, err
 	}
 	return records, nil
+}
+
+func (m *RecordModel) Delete(id int) error {
+	stmt := "DELETE FROM records WHERE id = ?"
+	_, err := m.DB.Exec(stmt, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

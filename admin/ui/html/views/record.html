@@ -27,6 +27,8 @@
 {{if .Record.Content}}{{.Record.Content}}{{end}}</textarea
     >
   </label>
-  <button>Save</button>
+  <div class="actions">
+    <button>{{if .Record.Status}}Update{{else}}Publish{{end}}</button>
+  </div>
 </form>
 {{end}}

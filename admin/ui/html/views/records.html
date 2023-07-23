@@ -10,7 +10,11 @@
 <table>
   {{range $index, $record := $records}}
   <tr>
-    <td>{{$record.Title}}</td>
+    <td>
+      <a href="{{$basePath}}{{.Collection.Plural}}/{{$record.ID}}"
+        >{{$record.Title}}</a
+      >
+    </td>
   </tr>
   {{end}}
 </table>
