@@ -73,8 +73,13 @@ func getRecord(route *Base,w http.ResponseWriter, r *http.Request, model *models
 }
 
 func newRecord(w http.ResponseWriter, r *http.Request, route *Base, model *models.RecordModel, collection *models.Collection) {
-	title := input.Sanitize(r.FormValue("title"))
-	content := input.Sanitize(r.FormValue("content"))
+	err := r.ParseForm()
+	if err != nil {
+		exceptions.ClientError(w, http.StatusBadRequest)
+		return
+	}
+	title := input.Sanitize(r.PostForm.Get("title"))
+	content := input.Sanitize(r.PostForm.Get("content"))
 	id, err := model.Insert(title, transforms.Slugify(title), content, *collection)
 	if err != nil {
 		exceptions.ServerError(w, err)
@@ -87,9 +92,14 @@ func newRecord(w http.ResponseWriter, r *http.Request, route *Base, model *model
 }
 
 func updateRecord(w http.ResponseWriter, r *http.Request, route *Base, model *models.RecordModel, collection *models.Collection, id int) {
-	title := input.Sanitize(r.FormValue("title"))
-	content := input.Sanitize(r.FormValue("content"))
-	err := model.Update(id, title, content)
+	err := r.ParseForm()
+	if err != nil {
+		exceptions.ClientError(w, http.StatusBadRequest)
+		return
+	}
+	title := input.Sanitize(r.PostForm.Get("title"))
+	content := input.Sanitize(r.PostForm.Get("content"))
+	err = model.Update(id, title, content)
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}

@@ -8,6 +8,7 @@ import (
 	"storality.com/storality/internal/app"
 	"storality.com/storality/internal/config"
 	"storality.com/storality/internal/helpers/shout"
+	"storality.com/storality/internal/middleware"
 	"storality.com/storality/web"
 )
 
@@ -30,7 +31,7 @@ func main() {
 
 	server := &http.Server{
 		Addr: ":" + fmt.Sprint(config.Port),
-		Handler: router,
+		Handler: middleware.RecoverPanic(middleware.LogRequest(middleware.SecureHeaders(router))),
 	}
 	
 	fmt.Printf("\033[38;5;209mStarting server on :%d\033[0m\n", config.Port)
