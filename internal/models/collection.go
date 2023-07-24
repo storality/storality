@@ -56,8 +56,12 @@ func (m *CollectionModel) Init() error {
 
 func (m *CollectionModel) Insert(name string, plural string) (int, error) {
 	createdAt := time.Now()
-	stmt := "INSERT INTO collections (name, plural, createdAt, updatedAt) VALUES (?, ?, ?, ?)"
-	result, err := m.DB.Exec(stmt, name, plural, createdAt, createdAt)
+	stmt, err := m.DB.Prepare("INSERT INTO collections (name, plural, createdAt, updatedAt) VALUES (?, ?, ?, ?)")
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+	result, err := stmt.Exec(name, plural, createdAt, createdAt)
 	if err != nil {
 		return 0, err
 	}
@@ -69,10 +73,14 @@ func (m *CollectionModel) Insert(name string, plural string) (int, error) {
 }
 
 func (m *CollectionModel) FindById(id int) (*Collection, error) {
-	stmt := `SELECT * FROM collections WHERE id = ?`
-	row := m.DB.QueryRow(stmt, id)
+	stmt, err := m.DB.Prepare("SELECT * FROM collections WHERE id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow(id)
 	collection := &Collection{}
-	err := row.Scan(
+	err = row.Scan(
 		&collection.ID,
 		&collection.Name,
 		&collection.Plural,
@@ -90,10 +98,14 @@ func (m *CollectionModel) FindById(id int) (*Collection, error) {
 }
 
 func (m *CollectionModel) FindByName(name string) (*Collection, error) {
-	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections WHERE name = ?`
-	row := m.DB.QueryRow(stmt, name)
+	stmt, err := m.DB.Prepare("SELECT * FROM collections WHERE name = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow(name)
 	collection := &Collection{}
-	err := row.Scan(
+	err = row.Scan(
 		&collection.ID,
 		&collection.Name,
 		&collection.Plural,
@@ -112,10 +124,14 @@ func (m *CollectionModel) FindByName(name string) (*Collection, error) {
 
 func (m *CollectionModel) FindByPlural(plural string) (*Collection, error) {
 	trim := strings.Trim(plural, "/")
-	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections WHERE plural = ?`
-	row := m.DB.QueryRow(stmt, trim)
+	stmt, err := m.DB.Prepare("SELECT * FROM collections WHERE plural = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow(trim)
 	collection := &Collection{}
-	err := row.Scan(
+	err = row.Scan(
 		&collection.ID,
 		&collection.Name,
 		&collection.Plural,
@@ -133,7 +149,7 @@ func (m *CollectionModel) FindByPlural(plural string) (*Collection, error) {
 }
 
 func (m *CollectionModel) FindMany() ([]*Collection, error) {
-	stmt := `SELECT id, name, plural, createdAt, updatedAt FROM collections`
+	stmt := "SELECT * FROM collections"
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err

@@ -58,7 +58,7 @@ func (m *RecordModel) Init() {
 
 func (m *RecordModel) Insert(title string, slug string, content string, collection Collection) (int, error) {
 	createdAt := time.Now()
-	stmt := `INSERT INTO records (
+	stmt, err := m.DB.Prepare(`INSERT INTO records (
 		title,
 		slug,
 		content,
@@ -66,9 +66,12 @@ func (m *RecordModel) Insert(title string, slug string, content string, collecti
 		status,
 		createdAt,
 		updatedAt
-	) VALUES (?, ?, ?, ?, ?, ?, ?)`
-	result, err := m.DB.Exec(
-		stmt,
+	) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+	result, err := stmt.Exec(
 		title,
 		slug,
 		content,
@@ -89,8 +92,12 @@ func (m *RecordModel) Insert(title string, slug string, content string, collecti
 
 func (m *RecordModel) Update(id int, title string, content string) error {
 	updatedAt := time.Now()
-	stmt := "UPDATE records SET title = ?, content = ?, updatedAt = ? WHERE id = ?"
-	_, err := m.DB.Exec(stmt, title, content, updatedAt, id)
+	stmt, err := m.DB.Prepare("UPDATE records SET title = ?, content = ?, updatedAt = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(title, content, updatedAt, id)
 	if err != nil {
 		return err
 	}
@@ -99,8 +106,12 @@ func (m *RecordModel) Update(id int, title string, content string) error {
 
 func (m *RecordModel) UpdateStatus(id int, status Status) error {
 	updatedAt := time.Now()
-	stmt := "UPDATE records SET status = ?, updatedAt = ? WHERE id = ?"
-	_, err := m.DB.Exec(stmt, status, updatedAt, id)
+	stmt, err := m.DB.Prepare("UPDATE records SET status = ?, updatedAt = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(status, updatedAt, id)
 	if err != nil {
 		return err
 	}
@@ -108,12 +119,16 @@ func (m *RecordModel) UpdateStatus(id int, status Status) error {
 }
 
 func (m *RecordModel) FindById(id int) (*Record, error) {
-	stmt := `SELECT * FROM records WHERE id = ?`
-	row := m.DB.QueryRow(stmt, id)
+	stmt, err := m.DB.Prepare("SELECT * FROM records WHERE id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow(id)
 	record := &Record{
 		Collection: &Collection{},
 	}
-	err := row.Scan(
+	err = row.Scan(
 		&record.ID,
 		&record.Title,
 		&record.Slug,
@@ -130,24 +145,26 @@ func (m *RecordModel) FindById(id int) (*Record, error) {
 			return nil, err
 		}
 	}
-
 	collectionModel := &CollectionModel{DB: m.DB}
 	collection, err := collectionModel.FindById(record.Collection.ID)
 	if err != nil {
 			return nil, err
 	}
 	record.Collection = collection
-
 	return record, nil
 }
 
 func (m *RecordModel) FindByTitle(title string) (*Record, error) {
-	stmt := `SELECT * FROM records WHERE title = ?`
-	row := m.DB.QueryRow(stmt, title)
+	stmt, err := m.DB.Prepare("SELECT * FROM records WHERE id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow(title)
 	record := &Record{
 		Collection: &Collection{},
 	}
-	err := row.Scan(
+	err = row.Scan(
 		&record.ID,
 		&record.Title,
 		&record.Slug,
@@ -164,24 +181,26 @@ func (m *RecordModel) FindByTitle(title string) (*Record, error) {
 			return nil, err
 		}
 	}
-
 	collectionModel := &CollectionModel{DB: m.DB}
 	collection, err := collectionModel.FindById(record.Collection.ID)
 	if err != nil {
 			return nil, err
 	}
 	record.Collection = collection
-
 	return record, nil
 }
 
 func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
-	stmt := `SELECT * FROM records WHERE slug = ?`
-	row := m.DB.QueryRow(stmt, slug)
+	stmt, err := m.DB.Prepare("SELECT * FROM records WHERE id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow(slug)
 	record := &Record{
 		Collection: &Collection{},
 	}
-	err := row.Scan(
+	err = row.Scan(
 		&record.ID,
 		&record.Title,
 		&record.Slug,
@@ -198,7 +217,6 @@ func (m *RecordModel) FindBySlug(slug string) (*Record, error) {
 			return nil, err
 		}
 	}
-
 	collectionModel := &CollectionModel{DB: m.DB}
 	collection, err := collectionModel.FindById(record.Collection.ID)
 	if err != nil {
@@ -251,8 +269,12 @@ func (m *RecordModel) FindMany(filter *Filter) ([]*Record, error) {
 }
 
 func (m *RecordModel) Delete(id int) error {
-	stmt := "DELETE FROM records WHERE id = ?"
-	_, err := m.DB.Exec(stmt, id)
+	stmt, err := m.DB.Prepare("DELETE FROM records WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(id)
 	if err != nil {
 		return err
 	}
