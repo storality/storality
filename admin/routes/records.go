@@ -29,7 +29,7 @@ func getRecords(app *app.Core, w http.ResponseWriter, r *http.Request, collectio
 		exceptions.ServerError(w, err)
 	}
 	if len(records) == 0 {
-		data.Notice = templates.Notice{
+		data.Flash = &templates.Flash{
 			Message: fmt.Sprintf("There are no %s", collection.Plural),
 			Type: "info",
 		}

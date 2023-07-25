@@ -7,7 +7,7 @@ import (
 	"storality.com/storality/internal/models"
 )
 
-type Notice struct {
+type Flash struct {
 	Message string
 	Type		string
 }
@@ -21,7 +21,7 @@ type Engine struct {
 	Record 			*models.Record
 	Records			[]*models.Record
 	Cache				map[string]*template.Template
-	Notice 			Notice
+	Flash 			*Flash
 }
 
 func (engine *Engine) CreateTemplateData(r *http.Request) *Engine {

@@ -9,6 +9,7 @@ import (
 	"storality.com/storality/admin/templates"
 	"storality.com/storality/internal/app"
 	"storality.com/storality/internal/helpers/exceptions"
+	"storality.com/storality/internal/helpers/flash"
 	"storality.com/storality/internal/helpers/input"
 	"storality.com/storality/internal/helpers/transforms"
 	"storality.com/storality/internal/models"
@@ -58,17 +59,25 @@ func getRecord(route *Base,w http.ResponseWriter, r *http.Request, model *models
 			Content: "",
 		}
 	}
-	message := r.URL.Query().Get("message")
-	notice := templates.Notice{}
-	switch message {
-		case "created":
-			notice.Type = "info"
-			notice.Message = "Saved successfully."
-		case "updated":
-			notice.Type = "info"
-			notice.Message = "Updated successfully."
+	
+	flashInfo, err := flash.Get(w, r, "flash-info")
+	if err != nil {
+		exceptions.ServerError(w, err)
 	}
-	data.Notice = notice
+	data.Flash = &templates.Flash{
+		Type: "info",
+		Message: string(flashInfo),
+	}
+
+	flashError, err := flash.Get(w, r, "flash-info")
+	if err != nil {
+		exceptions.ServerError(w, err)
+	}
+	data.Flash = &templates.Flash{
+		Type: "error",
+		Message: string(flashError),
+	}
+
 	route.Template.Render(w, http.StatusOK, "record.html", data)
 }
 
@@ -88,7 +97,9 @@ func newRecord(w http.ResponseWriter, r *http.Request, route *Base, model *model
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}
-	http.Redirect(w, r, fmt.Sprintf("%s%s/%d?message=created", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
+	info := []byte(fmt.Sprintf("The %s has been saved.", collection.Name))
+	flash.Set(w, "flash-info", info)
+	http.Redirect(w, r, fmt.Sprintf("%s%s/%d", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
 }
 
 func updateRecord(w http.ResponseWriter, r *http.Request, route *Base, model *models.RecordModel, collection *models.Collection, id int) {
@@ -103,7 +114,9 @@ func updateRecord(w http.ResponseWriter, r *http.Request, route *Base, model *mo
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}
-	http.Redirect(w, r, fmt.Sprintf("%s%s/%d?message=updated", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
+	info := []byte(fmt.Sprintf("The %s has been updated.", collection.Name))
+	flash.Set(w, "flash-info", info)
+	http.Redirect(w, r, fmt.Sprintf("%s%s/%d", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
 }
 
 func deleteRecord(w http.ResponseWriter, r *http.Request, route *Base, model *models.RecordModel, collection *models.Collection, id int) {

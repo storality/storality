@@ -1,7 +1,7 @@
 {{define "main"}}
 <form action="{{.Route}}" method="post">
-  {{if .Notice}}
-  <div class="notice">{{.Notice.Message}}</div>
+  {{if .Flash}}
+  <div class="flash">{{.Flash.Message}}</div>
   {{end}}
   <label for="title">
     <input
