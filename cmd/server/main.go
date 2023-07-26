@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"storality.com/storality/admin"
 	"storality.com/storality/internal/app"
@@ -32,6 +33,9 @@ func main() {
 	server := &http.Server{
 		Addr: ":" + fmt.Sprint(config.Port),
 		Handler: middleware.RecoverPanic(middleware.LogRequest(middleware.SecureHeaders(router))),
+		IdleTimeout: time.Minute,
+		ReadTimeout: 5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 	
 	fmt.Printf("\033[38;5;209mStarting server on :%d\033[0m\n", config.Port)
