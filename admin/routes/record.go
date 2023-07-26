@@ -8,6 +8,7 @@ import (
 
 	"storality.com/storality/admin/templates"
 	"storality.com/storality/internal/app"
+	"storality.com/storality/internal/helpers/constants"
 	"storality.com/storality/internal/helpers/exceptions"
 	"storality.com/storality/internal/helpers/flash"
 	"storality.com/storality/internal/helpers/input"
@@ -93,7 +94,7 @@ func newRecord(w http.ResponseWriter, r *http.Request, route *Base, model *model
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}
-	err = model.UpdateStatus(id, models.StatusPublished)
+	err = model.UpdateStatus(id, constants.StatusPublished)
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}

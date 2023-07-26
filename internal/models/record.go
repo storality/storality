@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"storality.com/storality/internal/helpers/constants"
 	"storality.com/storality/internal/helpers/exceptions"
 	"storality.com/storality/internal/helpers/shout"
 )
@@ -16,7 +17,7 @@ type Record struct {
 	Slug 				string
 	Content 		string
 	Collection 	*Collection
-	Status			Status
+	Status			constants.Status
 	CreatedAt 	time.Time
 	UpdatedAt 	time.Time
 }
@@ -76,7 +77,7 @@ func (m *RecordModel) Insert(title string, slug string, content string, collecti
 		slug,
 		content,
 		collection.ID,
-		StatusDraft,
+		constants.StatusDraft,
 		createdAt,
 		createdAt,
 	)
@@ -104,7 +105,7 @@ func (m *RecordModel) Update(id int, title string, content string) error {
 	return nil
 }
 
-func (m *RecordModel) UpdateStatus(id int, status Status) error {
+func (m *RecordModel) UpdateStatus(id int, status constants.Status) error {
 	updatedAt := time.Now()
 	stmt, err := m.DB.Prepare("UPDATE records SET status = ?, updatedAt = ? WHERE id = ?")
 	if err != nil {
