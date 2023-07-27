@@ -30,11 +30,11 @@ func main() {
 		}
 	}
 
-	static := m.Chain(m.RecoverPanic, m.LogRequest, m.SecureHeaders)
+	middleware := m.Chain(m.RecoverPanic, m.LogRequest, m.SecureHeaders)
 
 	server := &http.Server{
 		Addr: ":" + fmt.Sprint(config.Port),
-		Handler: static.To(router),
+		Handler: middleware.To(router),
 		IdleTimeout: time.Minute,
 		ReadTimeout: 5 * time.Second,
 		WriteTimeout: 10 * time.Second,
