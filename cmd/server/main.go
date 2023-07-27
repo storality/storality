@@ -9,7 +9,7 @@ import (
 	"storality.com/storality/internal/app"
 	"storality.com/storality/internal/config"
 	"storality.com/storality/internal/helpers/shout"
-	"storality.com/storality/internal/middleware"
+	m "storality.com/storality/internal/middleware"
 	"storality.com/storality/web"
 )
 
@@ -30,9 +30,11 @@ func main() {
 		}
 	}
 
+	static := m.Chain(m.RecoverPanic, m.LogRequest, m.SecureHeaders)
+
 	server := &http.Server{
 		Addr: ":" + fmt.Sprint(config.Port),
-		Handler: middleware.RecoverPanic(middleware.LogRequest(middleware.SecureHeaders(router))),
+		Handler: static.To(router),
 		IdleTimeout: time.Minute,
 		ReadTimeout: 5 * time.Second,
 		WriteTimeout: 10 * time.Second,
