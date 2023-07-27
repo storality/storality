@@ -6,11 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"storality.com/storality/admin/templates"
 	"storality.com/storality/internal/app"
 	"storality.com/storality/internal/helpers/constants"
 	"storality.com/storality/internal/helpers/exceptions"
-	"storality.com/storality/internal/helpers/flash"
 	"storality.com/storality/internal/helpers/input"
 	"storality.com/storality/internal/helpers/transforms"
 	"storality.com/storality/internal/models"
@@ -60,24 +58,6 @@ func getRecord(route *Base,w http.ResponseWriter, r *http.Request, model *models
 			Content: "",
 		}
 	}
-	
-	flashInfo, err := flash.Get(w, r, "flash-info")
-	if err != nil {
-		exceptions.ServerError(w, err)
-	}
-	data.Flash = &templates.Flash{
-		Type: "info",
-		Message: string(flashInfo),
-	}
-
-	flashError, err := flash.Get(w, r, "flash-info")
-	if err != nil {
-		exceptions.ServerError(w, err)
-	}
-	data.Flash = &templates.Flash{
-		Type: "error",
-		Message: string(flashError),
-	}
 
 	route.Template.Render(w, http.StatusOK, "record.html", data)
 }
@@ -98,8 +78,6 @@ func newRecord(w http.ResponseWriter, r *http.Request, route *Base, model *model
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}
-	info := []byte(fmt.Sprintf("The %s has been saved.", collection.Name))
-	flash.Set(w, "flash-info", info)
 	http.Redirect(w, r, fmt.Sprintf("%s%s/%d", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
 }
 
@@ -115,8 +93,6 @@ func updateRecord(w http.ResponseWriter, r *http.Request, route *Base, model *mo
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}
-	info := []byte(fmt.Sprintf("The %s has been updated.", collection.Name))
-	flash.Set(w, "flash-info", info)
 	http.Redirect(w, r, fmt.Sprintf("%s%s/%d", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
 }
 

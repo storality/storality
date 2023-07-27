@@ -4,9 +4,6 @@
 >
 <h1>Showing all {{.Collection.Plural}}</h1>
 
-{{if .Flash}}
-<div class="flash">{{.Flash.Message}}</div>
-{{end}}
 <table>
   {{range $index, $record := $records}}
   <tr>

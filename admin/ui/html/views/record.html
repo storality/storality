@@ -1,8 +1,5 @@
 {{define "main"}}
 <form action="{{.Route}}" method="post">
-  {{if .Flash}}
-  <div class="flash">{{.Flash.Message}}</div>
-  {{end}}
   <label for="title">
     <input
       required
@@ -24,7 +21,7 @@
       name="content"
       placeholder="Content"
     >
-{{if .Record.Content}}{{.Record.Content}}{{end}}</textarea
+{{with .Record.Content}}{{.}}{{end}}</textarea
     >
   </label>
   <div class="actions">
