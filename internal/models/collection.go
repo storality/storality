@@ -50,6 +50,10 @@ func (m *CollectionModel) Init() error {
 		if err != nil {
 			shout.Error.Fatal()
 		}
+		_, err = m.Insert("founder", "founders")
+		if err != nil {
+			shout.Error.Fatal()
+		}
 	}
 	return nil
 }
