@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"storality.com/storality/admin/templates"
 	"storality.com/storality/internal/app"
 	"storality.com/storality/internal/helpers/constants"
 	"storality.com/storality/internal/helpers/exceptions"
@@ -40,6 +41,7 @@ func getRecord(route *Base,w http.ResponseWriter, r *http.Request, model *models
 	data.Title = transforms.Capitalize(collection.Name)
 	data.Collections = route.Collections
 	data.Collection = collection
+
 	id, err := strconv.Atoi(param)
 	if err == nil {
 		record, err := model.FindById(id)
@@ -57,6 +59,18 @@ func getRecord(route *Base,w http.ResponseWriter, r *http.Request, model *models
 			Title: "",
 			Content: "",
 		}
+	}
+
+	flashCookie, err := r.Cookie("flashInfo")
+	if err != http.ErrNoCookie && err == nil {
+		data.Flash = &templates.Flash{
+			Type: "info",
+			Message: flashCookie.Value,
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name: "flashInfo",
+			MaxAge: -1,
+		})
 	}
 
 	route.Template.Render(w, http.StatusOK, "record.html", data)
@@ -78,6 +92,11 @@ func newRecord(w http.ResponseWriter, r *http.Request, route *Base, model *model
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name: 		"flashInfo",
+		Value: 		fmt.Sprintf("Your %s has been saved.", collection.Name),
+		HttpOnly: true,
+	})
 	http.Redirect(w, r, fmt.Sprintf("%s%s/%d", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
 }
 
@@ -93,6 +112,11 @@ func updateRecord(w http.ResponseWriter, r *http.Request, route *Base, model *mo
 	if err != nil {
 		exceptions.ServerError(w, err)
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name: 		"flashInfo",
+		Value: 		fmt.Sprintf("Your %s has been updated.", collection.Name),
+		HttpOnly: true,
+	})
 	http.Redirect(w, r, fmt.Sprintf("%s%s/%d", route.BasePath, transforms.Slugify(collection.Plural), id), http.StatusSeeOther)
 }
 
