@@ -33,7 +33,7 @@ func (manager *SessionManager) CreateSession() string {
 	return sessionID
 }
 
-func (manager *SessionManager) CheckSession(sessionID string, maxAge time.Duration) bool {
+func (manager *SessionManager) CheckSession(sessionID string) bool {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -42,5 +42,5 @@ func (manager *SessionManager) CheckSession(sessionID string, maxAge time.Durati
 		return false
 	}
 
-	return time.Since(timestamp) <= maxAge
+	return time.Since(timestamp) <= 12 * time.Hour
 }

@@ -8,6 +8,7 @@ import (
 	"storality.com/storality/admin"
 	"storality.com/storality/internal/app"
 	"storality.com/storality/internal/config"
+	"storality.com/storality/internal/helpers/session"
 	"storality.com/storality/internal/helpers/shout"
 	m "storality.com/storality/internal/middleware"
 	"storality.com/storality/web"
@@ -16,7 +17,8 @@ import (
 func main() {
 	config := config.New("server")
 	router := http.NewServeMux()
-	app := app.Bootstrap(*config, router)
+	sessionManager := session.NewSessionManager()
+	app := app.Bootstrap(*config, router, sessionManager)
 
 	_, err := admin.Run(app, config.Headless)
 	if err != nil {

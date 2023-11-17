@@ -11,6 +11,7 @@ import (
 type DB struct {
 	Collections *models.CollectionModel
 	Records *models.RecordModel
+	Sessions *models.SessionModel
 }
 
 func Connect() *DB {
@@ -27,10 +28,12 @@ func Connect() *DB {
 	db := &DB{
 		Collections: &models.CollectionModel{DB: database},
 		Records: &models.RecordModel{DB: database},
+		Sessions: &models.SessionModel{DB: database},
 	}
 
 	db.Collections.Init()
 	db.Records.Init()
+	db.Sessions.Init()
 	return db
 }
 
